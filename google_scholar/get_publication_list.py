@@ -1,20 +1,17 @@
 # ref: https://serpapi.com/google-scholar-author-articles
 # ref dashboard: https://serpapi.com/dashboard
-# from serpapi import GoogleSearch
-import serpapi
+
+from serpapi import GoogleSearch
 import json
 from urllib.parse import urlsplit, parse_qsl
 
 params = {
   "engine": "google_scholar_author",
-  "author_id": "fzSHXS8AAAAJ",
-  "api_key": "8dc52802ba659bfb88b5c71d32046c2c9bb223793336587621bad33db879e417",
+  "author_id": "aLOSzWwAAAAJ",
+  "api_key": "8dc52802ba659bfb88b5c71d32046c2c9bb223793336587621bad33db879e417",  # Replace with your actual API key
 }
 
 author_article_results_data = []
-
-# search = GoogleSearch(params)
-search = serpapi.search(params)
 
 articles_is_present = True
 next_start = 0
@@ -23,29 +20,37 @@ while articles_is_present:
 
     params["start"] = next_start
 
-    search = serpapi.search(params)
+    search = GoogleSearch(params)
 
-    results = search.as_dict()
+    results = search.get_dict()
     
-    articles = results["articles"]
+    articles = results.get("articles", [])
 
     for article in articles:
-         author_article_results_data.append(articles)
+        cleaned_article = {
+            "title": article.get("title"),
+            "link": article.get("link"),
+            "citation_id": article.get("citation_id"),
+            "authors": article.get("authors"),
+            "publication": article.get("publication"),
+            "year": article.get("year")
+        }
+        author_article_results_data.append(cleaned_article)
 
-    # with open("author_pub_out_paginated.json", "a") as outfile:
-    #     json.dump(articles, outfile) 
-    
-    if "next" in results.get("serpapi_pagination", []):
-        print(f"Next link: #{results["serpapi_pagination"]["next"]}")
-        search.update(dict(parse_qsl(urlsplit(results.get("serpapi_pagination").get("next")).query)))
+    if "next" in results.get("serpapi_pagination", {}):
+        print(f"Next link: {results['serpapi_pagination']['next']}")
+        query_params = dict(parse_qsl(urlsplit(results['serpapi_pagination']['next']).query))
+        params.update(query_params)
     else:
-       articles_is_present = False
-    
-    # if not articles:
+        articles_is_present = False
+
     next_start += 20
-    # else:
-    #    articles_is_present = False
-     
-with open("author_pub_out_paginated.json", "w") as outfile:
-    json.dump(author_article_results_data, outfile) 
-print(f"all pages done!!" )
+
+# Sort the list by year, from most recent to oldest
+author_article_results_data_sorted = sorted(author_article_results_data, key=lambda x: x.get("year", "0"), reverse=True)
+
+# Write the sorted list to a file
+with open("author_pub_out_sorted.json", "w") as outfile:
+    json.dump(author_article_results_data_sorted, outfile, indent=4)  # Using indent for better readability
+
+print("All pages done with sorting by year!")
