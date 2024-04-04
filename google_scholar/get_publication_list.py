@@ -8,7 +8,7 @@ from urllib.parse import urlsplit, parse_qsl
 params = {
   "engine": "google_scholar_author",
   "author_id": "aLOSzWwAAAAJ",
-  "api_key": "8dc52802ba659bfb88b5c71d32046c2c9bb223793336587621bad33db879e417",  # Replace with your actual API key
+  "api_key": "",  # Replace with your actual API key
 }
 
 author_article_results_data = []
